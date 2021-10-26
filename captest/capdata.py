@@ -1365,6 +1365,9 @@ class CapData(object):
                 break
 
         if not isinstance(all_data.index[0], pd.Timestamp):
+            # this part creates i from first row where
+            # index is a datetime used later on to delete the
+            # first couple of rows that have column info
             for i, indice in enumerate(all_data.index):
                 try:
                     isinstance(dateutil.parser.parse(str(all_data.index[i])),
@@ -3410,9 +3413,53 @@ if __name__ == "__main__":
     import pandas as pd  # noqa F811
 
     das = CapData('das')
-    das.load_data(path='../examples/data/', fname='example_meas_data.csv',
+    das.load_data(path='docs/examples/data/',
+                  fname='example_meas_data.csv',
                   source='AlsoEnergy')
     das.set_regression_cols(power='-mtr-', poa='irr-poa-',
                             t_amb='temp-amb-', w_vel='wind--')
+
+    das.agg_sensors(agg_map={'-inv-':'sum', 'irr-poa-':'mean', 'temp-amb-':'mean', 'wind--':'mean'},
+                inv_sum_vs_power=False)
+
+    das.reset_filter()
+
+    das.filter_sensors()
+
+    das.get_summary()
+
+    das.filter_custom(pd.DataFrame.dropna)
+
+    das.filter_irr(200, 2000)
+
+    das.filter_outliers()
+
+    das.fit_regression(filter=True, summary=False)
+
+    #das.rep_cond(freq='BQ-FEB')
+    #das.rep_cond(irr_bal=True, percent_filter=20)
+    das.rep_cond()
+
+    sim = CapData('sim')
+
+    sim.load_data(path='docs/examples/data/', load_pvsyst=True)
+
+    sim.set_regression_cols(power='real_pwr--', poa='irr-poa-', t_amb='temp-amb-', w_vel='wind--')
+
+    sim.reset_filter()
+
+    sim.filter_time(test_date='10/11/1990', days=60)
+
+    sim.filter_irr(200, 930)
+
+    #sim.filter_shade()
+
+    sim.filter_pvsyst()
+
+    sim.filter_irr(0.5, 1.5, ref_val=das.rc['poa'][0])
+
+    sim.fit_regression()
+
+    captest_results(sim, das, 6000, '+/- 7', print_res=True)
 
     doctest.testmod()
