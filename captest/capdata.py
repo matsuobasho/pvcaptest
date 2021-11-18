@@ -1581,6 +1581,7 @@ class CapData(object):
                                  output='both')
 
         if group_columns:
+            # this creates a dictionary of column traslations
             self.group_columns(column_type_report=column_type_report)
 
         self.data_filtered = self.data.copy()
